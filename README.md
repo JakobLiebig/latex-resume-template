@@ -1,4 +1,4 @@
-# Jakob Liebig — Resume
+# Latex Resume Template
 
 <div align="center">
   <img src="https://github.com/JakobLiebig/latex-resume-template/blob/output/resume.png" alt="Resume Preview" width="800">
