@@ -1,0 +1,63 @@
+name: Deploy Resume
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Compile LaTeX
+        uses: xu-cheng/latex-action@v2
+        with:
+          root_file: main.tex
+          args: -jobname=resume -pdf -file-line-error -halt-on-error -interaction=nonstopmode
+
+      - name: Install Poppler
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
+
+      - name: Generate PNG Preview
+        run: pdftoppm -png -f 1 -l 1 -singlefile resume.pdf resume
+
+      - name: Update Tag
+        run: |
+          git tag -f latest
+          git push -f origin latest
+
+      - name: Push artifacts to output branch
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Prepare the artifacts directory
+          mkdir -p dist
+          cp resume.png dist/resume.png
+          
+          # Initialize a new git repo inside dist to push from there
+          # This keeps the main workspace clean for the next steps
+          cd dist
+          git init
+          git checkout -b output
+          git add .
+          git commit -m "Update resume artifacts"
+          
+          # Push force to the output branch of the origin repo
+          git remote add origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+          git push -f origin output
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: latest
+          name: Latest Build
+          files: resume.pdf
+          draft: false
+          prerelease: false
