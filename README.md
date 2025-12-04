@@ -31,7 +31,7 @@
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/JakobLiebig/Resume.git
+   git clone https://github.com/JakobLiebig/latex-resume-template.git
    cd Resume
    ```
 2. Compile:
